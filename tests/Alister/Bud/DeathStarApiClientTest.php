@@ -3,16 +3,19 @@
 namespace Tests;
 
 use Alister\Bud\DeathStarApiClient;
+use GuzzleHttp\Middleware;
 use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
+use GuzzleHttp\Psr7\Request;
 
 class DeathStarApiClientTest extends TestCase
 {
     const CLIENT_SECRET = 'Alderaan';
     const CLIENT_ID = 'R2D2';
+    const EXPECTED_API_URI_TOKEN = 'https://death.star.api/token';
 
     public function testGetTokenSuccessfullyMocked()
     {
@@ -24,19 +27,33 @@ class DeathStarApiClientTest extends TestCase
             'token_type' => 'Bearer',
             'scope' => 'TheForce'
         ];
-
-        // Create a mock and queue two responses.
         $mock = new MockHandler([
             new Response(200, $goodResponse),
         ]);
 
-        $handler = HandlerStack::create($mock);
-        $guzzleClient = new Client(['handler' => $handler]);
+        $container = [];
+        $history = Middleware::history($container);
+        $stack = HandlerStack::create($mock);
+        $stack->push($history);
+
+        $guzzleClient = new Client(['handler' => $stack]);
 
         $client = new DeathStarApiClient($guzzleClient);
         $result = $client->getToken(self::CLIENT_ID, self::CLIENT_SECRET);
 
         // the headers are returned as arrays, so check for the '[ content ]'
         $this->assertSame($result->getHeader('access_token'), [$randomisedAcessToken]);
+
+        $this->assertCount(1, $container);
+        $guzzleTransaction = $container[0];
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $guzzleTransaction['request'];
+        /** @var GuzzleHttp\Psr7\Response $response */
+        $response = $guzzleTransaction['response'];
+
+        $this->assertSame('POST', $request->getMethod());
+        $this->assertSame(self::EXPECTED_API_URI_TOKEN, (string)$request->getUri());
+        $this->assertSame(200, $response->getStatusCode());
     }
 }
