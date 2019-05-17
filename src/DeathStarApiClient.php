@@ -25,6 +25,9 @@ class DeathStarApiClient
      */
     public function getToken(string $clientId, string $clientSecret): ResponseInterface
     {
-        return $this->guzzleClient->request('POST', '/token');
+        $options = [
+            'auth' => [$clientId, $clientSecret],
+        ];
+        return $this->guzzleClient->request('POST', '/token', $options);
     }
 }

@@ -13,8 +13,8 @@ use GuzzleHttp\Psr7\Request;
 
 class DeathStarApiClientTest extends TestCase
 {
-    const CLIENT_SECRET = 'Alderaan';
     const CLIENT_ID = 'R2D2';
+    const CLIENT_SECRET = 'Alderaan';
     const EXPECTED_API_URI_TOKEN = 'https://death.star.api/token';
 
     private $container = [];
@@ -22,19 +22,19 @@ class DeathStarApiClientTest extends TestCase
     public function testGetTokenSuccessfullyMocked()
     {
         // randomise what we expect to get back to assure ourselves it's being passed back exactly.
-        $randomisedAcessToken = base64_encode(random_bytes(16));
-        $mockedResponsed = [
-            'access_token' => $randomisedAcessToken,
+        $randomisedAccessToken = base64_encode(random_bytes(16));
+        $mockedResponse = [
+            'access_token' => $randomisedAccessToken,
             'expires_in' => 99999999999,
             'token_type' => 'Bearer',
             'scope' => 'TheForce'
         ];
-        $client = $this->createMockDeathStarApiClient($mockedResponsed);
+        $client = $this->createMockDeathStarApiClient($mockedResponse);
 
         $result = $client->getToken(self::CLIENT_ID, self::CLIENT_SECRET);
 
         // the headers are returned as arrays, so check for the '[ content ]'
-        $this->assertSame($result->getHeader('access_token'), [$randomisedAcessToken]);
+        $this->assertSame($result->getHeader('access_token'), [$randomisedAccessToken]);
 
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
@@ -47,6 +47,9 @@ class DeathStarApiClientTest extends TestCase
         $this->assertSame('POST', $request->getMethod());
         $this->assertSame(self::EXPECTED_API_URI_TOKEN, (string)$request->getUri());
         $this->assertSame(200, $response->getStatusCode());
+
+        // base64_decode('UjJEMjpBbGRlcmFhbg==') === {CLIENT_ID}:{CLIENT_SECRET}
+        $this->assertSame('Basic UjJEMjpBbGRlcmFhbg==', $request->getHeader('Authorization')[0]);
     }
 
     /**
