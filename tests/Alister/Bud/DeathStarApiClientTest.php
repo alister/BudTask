@@ -9,7 +9,7 @@ use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
 use GuzzleHttp\Psr7\Response;
-use GuzzleHttp\Psr7\Request;
+use Psr\Http\Message\MessageInterface;
 
 class DeathStarApiClientTest extends TestCase
 {
@@ -34,7 +34,7 @@ class DeathStarApiClientTest extends TestCase
         $result = $client->getToken(self::CLIENT_ID, self::CLIENT_SECRET);
 
         // the headers are returned as arrays, so check for the '[ content ]'
-        $this->assertSame($result->getHeader('access_token'), [$randomisedAccessToken]);
+        $this->getAssertHeaderSame($result, 'access_token', [$randomisedAccessToken]);
 
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
@@ -49,7 +49,8 @@ class DeathStarApiClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
 
         // base64_decode('UjJEMjpBbGRlcmFhbg==') === {CLIENT_ID}:{CLIENT_SECRET}
-        $this->assertSame('Basic UjJEMjpBbGRlcmFhbg==', $request->getHeader('Authorization')[0]);
+        #var_dump($request->getHeaders());die;
+        $this->getAssertHeaderSame($request, 'Authorization', ['Basic UjJEMjpBbGRlcmFhbg==']);
     }
 
     /**
@@ -69,5 +70,10 @@ class DeathStarApiClientTest extends TestCase
         $guzzleClient = new Client(['handler' => $stack, 'base_uri' => DeathStarApiClient::API_BASE_URI]);
 
         return new DeathStarApiClient($guzzleClient);
+    }
+
+    private function getAssertHeaderSame(MessageInterface $result, string $headerName, array $expectedContent): void
+    {
+        $this->assertSame($result->getHeader($headerName), $expectedContent);
     }
 }
