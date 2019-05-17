@@ -36,7 +36,8 @@ class DeathStarApiClientTest extends TestCase
         $stack = HandlerStack::create($mock);
         $stack->push($history);
 
-        $guzzleClient = new Client(['handler' => $stack]);
+        // normally setup by config, and injected by DI
+        $guzzleClient = new Client(['handler' => $stack, 'base_uri' => DeathStarApiClient::API_BASE_URI]);
 
         $client = new DeathStarApiClient($guzzleClient);
         $result = $client->getToken(self::CLIENT_ID, self::CLIENT_SECRET);

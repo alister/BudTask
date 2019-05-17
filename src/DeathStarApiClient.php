@@ -8,6 +8,8 @@ use Psr\Http\Message\ResponseInterface;
 
 class DeathStarApiClient
 {
+    public const API_BASE_URI = 'https://death.star.api';
+
     /**
      * @var \GuzzleHttp\ClientInterface
      */
