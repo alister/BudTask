@@ -14,10 +14,13 @@ class DeathStarApiClient
     private $guzzleClient;
     /** @var string */
     private $bearerToken;
+    /** @var \Alister\Bud\Translatable */
+    private $translator;
 
-    public function __construct(ClientInterface $guzzleClient)
+    public function __construct(ClientInterface $guzzleClient, Translatable $translator = null)
     {
         $this->guzzleClient = $guzzleClient;
+        $this->translator = $translator;
     }
 
     public function getBaseOptions(array $options): array
@@ -63,6 +66,12 @@ class DeathStarApiClient
         return $this->guzzleClient->request('DELETE', '/reactor/exhaust/' . $exhaustPort, $options);
     }
 
+    /**
+     * The data is returned in Binary format, for our hero to accept.
+     *
+     * @return \Psr\Http\Message\ResponseInterface
+     * @throws \GuzzleHttp\Exception\GuzzleException
+     */
     public function getPrisonerLocation(string $prisonerName): ResponseInterface
     {
         $options = $this->getBaseOptions([
@@ -73,5 +82,23 @@ class DeathStarApiClient
         ]);
 
         return $this->guzzleClient->request('GET', '/prisoner' . $prisonerName, $options);
+    }
+
+    /**
+     * Convert the raw binary we get from the /prisoner endpoint and translate
+     */
+    public function getPrisonerLocationInGalacticBasic(string $prisonerName): array
+    {
+        $response = $this->getPrisonerLocation($prisonerName);
+        $rawBinary = \GuzzleHttp\json_decode(''. $response->getBody(), true);
+
+        if ($this->translator === null) {
+            throw new \RuntimeException('No translator provided');
+        }
+
+        return [
+            'cell' => $this->translator->translate($rawBinary['cell']),
+            'block' => $this->translator->translate($rawBinary['block']),
+        ];
     }
 }
