@@ -29,9 +29,10 @@ class DeathStarApiClientTest extends TestCase
             'token_type' => 'Bearer',
             'scope' => 'TheForce'
         ];
-        $client = $this->createMockDeathStarApiClient($mockedResponse);
+        $client = $this->createMockDeathStarApiClient($mockedResponse, '');
 
         $result = $client->getToken(self::CLIENT_ID, self::CLIENT_SECRET);
+        $this->assertInstanceOf(Response::class, $result);
 
         // the headers are returned as arrays, so check for the '[ content ]'
         $this->assertHeaderSame($result, 'access_token', [$randomisedAccessToken]);
@@ -56,10 +57,11 @@ class DeathStarApiClientTest extends TestCase
     {
         $randomisedBearerToken = base64_encode(random_bytes(16));
 
-        $client = $this->createMockDeathStarApiClient([]);
+        $client = $this->createMockDeathStarApiClient([], '');
         $client->setBearerToken($randomisedBearerToken);
 
         $result = $client->shootExhaustWithTorpedoes(1, 2);
+        $this->assertInstanceOf(Response::class, $result);
 
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
@@ -76,10 +78,39 @@ class DeathStarApiClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
     }
 
-    private function createMockDeathStarApiClient(array $mockedResponsed): DeathStarApiClient
+    public function testGetPrisonerLocation()
+    {
+        $randomisedBearerToken = base64_encode(random_bytes(16));
+        $mockedResponse = [
+            'cell' => 'xyz',
+            'block' => 'abc'
+        ];
+        $client = $this->createMockDeathStarApiClient([], json_encode($mockedResponse));
+        $client->setBearerToken($randomisedBearerToken);
+
+        $result = $client->getPrisonerLocation('leia');
+        $this->assertInstanceOf(Response::class, $result);
+
+        $this->assertCount(1, $this->container);
+        $guzzleTransaction = $this->container[0];
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $guzzleTransaction['request'];
+        /** @var GuzzleHttp\Psr7\Response $response */
+        $response = $guzzleTransaction['response'];
+
+        $this->assertSame(200, $response->getStatusCode());
+        $this->assertHeaderSame($request, 'Authorization', ["Bearer {$randomisedBearerToken}"]);
+        $this->assertHeaderSame($request, 'Content-Type', ['application/json']);
+
+        $decodedData = \GuzzleHttp\json_decode($response->getBody(), true);
+        $this->assertSame($mockedResponse, $decodedData);
+    }
+
+    private function createMockDeathStarApiClient(array $mockedResponseHeaders, $body = ''): DeathStarApiClient
     {
         $mock = new MockHandler([
-            new Response(200, $mockedResponsed),
+            new Response(200, $mockedResponseHeaders, $body),
         ]);
 
         $history = Middleware::history($this->container);

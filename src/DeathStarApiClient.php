@@ -50,4 +50,16 @@ class DeathStarApiClient
 
         return $this->guzzleClient->request('DELETE', '/reactor/exhaust/' . $exhaustPort, $options);
     }
+
+    public function getPrisonerLocation(string $prisonerName): ResponseInterface
+    {
+        $options = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->bearerToken,
+                'Content-Type'  => 'application/json',
+            ],
+        ];
+
+        return $this->guzzleClient->request('GET', '/prisoner' . $prisonerName, $options);
+    }
 }
