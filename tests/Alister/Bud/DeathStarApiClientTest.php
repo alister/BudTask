@@ -3,12 +3,13 @@
 namespace Tests;
 
 use Alister\Bud\DeathStarApiClient;
-use GuzzleHttp\Middleware;
-use PHPUnit\Framework\TestCase;
 use GuzzleHttp\Client;
 use GuzzleHttp\Handler\MockHandler;
 use GuzzleHttp\HandlerStack;
+use GuzzleHttp\Middleware;
+use GuzzleHttp\Psr7\Request;
 use GuzzleHttp\Psr7\Response;
+use PHPUnit\Framework\TestCase;
 use Psr\Http\Message\MessageInterface;
 
 class DeathStarApiClientTest extends TestCase
@@ -40,11 +41,12 @@ class DeathStarApiClientTest extends TestCase
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
 
-        /** @var GuzzleHttp\Psr7\Request $request */
+        /** @var \GuzzleHttp\Psr7\Request $request */
         $request = $guzzleTransaction['request'];
-        /** @var GuzzleHttp\Psr7\Response $response */
+        /** @var \GuzzleHttp\Psr7\Response $response */
         $response = $guzzleTransaction['response'];
 
+        $this->assertRequestHasCertificate($request);
         $this->assertSame('POST', $request->getMethod());
         $this->assertSame(self::EXPECTED_API_URI_TOKEN, (string)$request->getUri());
         $this->assertSame(200, $response->getStatusCode());
@@ -66,11 +68,12 @@ class DeathStarApiClientTest extends TestCase
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
 
-        /** @var GuzzleHttp\Psr7\Request $request */
+        /** @var \GuzzleHttp\Psr7\Request $request */
         $request = $guzzleTransaction['request'];
-        /** @var GuzzleHttp\Psr7\Response $response */
+        /** @var \GuzzleHttp\Psr7\Response $response */
         $response = $guzzleTransaction['response'];
 
+        $this->assertRequestHasCertificate($request);
         $this->assertHeaderSame($request, 'Authorization', ["Bearer {$randomisedBearerToken}"]);
         $this->assertHeaderSame($request, 'X-Torpedoes', ['2']);
         $this->assertHeaderSame($request, 'Content-Type', ['application/json']);
@@ -94,11 +97,12 @@ class DeathStarApiClientTest extends TestCase
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
 
-        /** @var GuzzleHttp\Psr7\Request $request */
+        /** @var \GuzzleHttp\Psr7\Request $request */
         $request = $guzzleTransaction['request'];
-        /** @var GuzzleHttp\Psr7\Response $response */
+        /** @var \GuzzleHttp\Psr7\Response $response */
         $response = $guzzleTransaction['response'];
 
+        $this->assertRequestHasCertificate($request);
         $this->assertSame(200, $response->getStatusCode());
         $this->assertHeaderSame($request, 'Authorization', ["Bearer {$randomisedBearerToken}"]);
         $this->assertHeaderSame($request, 'Content-Type', ['application/json']);
@@ -126,5 +130,10 @@ class DeathStarApiClientTest extends TestCase
     private function assertHeaderSame(MessageInterface $message, string $headerName, array $expectedContent): void
     {
         $this->assertSame($message->getHeader($headerName), $expectedContent);
+    }
+
+    private function assertRequestHasCertificate(Request $request)
+    {
+        // @todo assure ourselves that the certificate is being sent as required
     }
 }

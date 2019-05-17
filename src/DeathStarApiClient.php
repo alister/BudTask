@@ -20,14 +20,26 @@ class DeathStarApiClient
         $this->guzzleClient = $guzzleClient;
     }
 
+    public function getBaseOptions(array $options): array
+    {
+        $cerificateHandling = [
+            'cert' => ['/path/server.pem', 'password'],
+            'verify' => true,
+        ];
+
+        return array_merge($cerificateHandling, $options);
+    }
+
     /**
      * @throws \GuzzleHttp\Exception\GuzzleException
      */
     public function getToken(string $clientId, string $clientSecret): ResponseInterface
     {
-        $options = [
+        $options = $this->getBaseOptions([
             'auth' => [$clientId, $clientSecret],
-        ];
+        ]);
+
+        // @todo get and store the token for later use...
         return $this->guzzleClient->request('POST', '/token', $options);
     }
 
@@ -40,25 +52,25 @@ class DeathStarApiClient
 
     public function shootExhaustWithTorpedoes(int $exhaustPort, int $qtyTorpedoes): ResponseInterface
     {
-        $options = [
+        $options = $this->getBaseOptions([
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->bearerToken,
                 'Content-Type'  => 'application/json',
                 'X-Torpedoes'   => $qtyTorpedoes,
             ],
-        ];
+        ]);
 
         return $this->guzzleClient->request('DELETE', '/reactor/exhaust/' . $exhaustPort, $options);
     }
 
     public function getPrisonerLocation(string $prisonerName): ResponseInterface
     {
-        $options = [
+        $options = $this->getBaseOptions([
             'headers' => [
                 'Authorization' => 'Bearer ' . $this->bearerToken,
                 'Content-Type'  => 'application/json',
             ],
-        ];
+        ]);
 
         return $this->guzzleClient->request('GET', '/prisoner' . $prisonerName, $options);
     }
