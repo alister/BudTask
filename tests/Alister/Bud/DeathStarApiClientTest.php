@@ -34,7 +34,7 @@ class DeathStarApiClientTest extends TestCase
         $result = $client->getToken(self::CLIENT_ID, self::CLIENT_SECRET);
 
         // the headers are returned as arrays, so check for the '[ content ]'
-        $this->getAssertHeaderSame($result, 'access_token', [$randomisedAccessToken]);
+        $this->assertHeaderSame($result, 'access_token', [$randomisedAccessToken]);
 
         $this->assertCount(1, $this->container);
         $guzzleTransaction = $this->container[0];
@@ -49,13 +49,33 @@ class DeathStarApiClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
 
         // base64_decode('UjJEMjpBbGRlcmFhbg==') === {CLIENT_ID}:{CLIENT_SECRET}
-        #var_dump($request->getHeaders());die;
-        $this->getAssertHeaderSame($request, 'Authorization', ['Basic UjJEMjpBbGRlcmFhbg==']);
+        $this->assertHeaderSame($request, 'Authorization', ['Basic UjJEMjpBbGRlcmFhbg==']);
     }
 
-    /**
-     * @param array $mockedResponsed
-     */
+    public function testShootExhaustpost()
+    {
+        $randomisedBearerToken = base64_encode(random_bytes(16));
+
+        $client = $this->createMockDeathStarApiClient([]);
+        $client->setBearerToken($randomisedBearerToken);
+
+        $result = $client->shootExhaustWithTorpedoes(1, 2);
+
+        $this->assertCount(1, $this->container);
+        $guzzleTransaction = $this->container[0];
+
+        /** @var GuzzleHttp\Psr7\Request $request */
+        $request = $guzzleTransaction['request'];
+        /** @var GuzzleHttp\Psr7\Response $response */
+        $response = $guzzleTransaction['response'];
+
+        $this->assertHeaderSame($request, 'Authorization', ["Bearer {$randomisedBearerToken}"]);
+        $this->assertHeaderSame($request, 'X-Torpedoes', ['2']);
+        $this->assertHeaderSame($request, 'Content-Type', ['application/json']);
+
+        $this->assertSame(200, $response->getStatusCode());
+    }
+
     private function createMockDeathStarApiClient(array $mockedResponsed): DeathStarApiClient
     {
         $mock = new MockHandler([
@@ -72,8 +92,8 @@ class DeathStarApiClientTest extends TestCase
         return new DeathStarApiClient($guzzleClient);
     }
 
-    private function getAssertHeaderSame(MessageInterface $result, string $headerName, array $expectedContent): void
+    private function assertHeaderSame(MessageInterface $message, string $headerName, array $expectedContent): void
     {
-        $this->assertSame($result->getHeader($headerName), $expectedContent);
+        $this->assertSame($message->getHeader($headerName), $expectedContent);
     }
 }

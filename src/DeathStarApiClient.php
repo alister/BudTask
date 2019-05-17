@@ -10,10 +10,10 @@ class DeathStarApiClient
 {
     public const API_BASE_URI = 'https://death.star.api';
 
-    /**
-     * @var \GuzzleHttp\ClientInterface
-     */
+    /** @var \GuzzleHttp\ClientInterface */
     private $guzzleClient;
+    /** @var string */
+    private $bearerToken;
 
     public function __construct(ClientInterface $guzzleClient)
     {
@@ -29,5 +29,25 @@ class DeathStarApiClient
             'auth' => [$clientId, $clientSecret],
         ];
         return $this->guzzleClient->request('POST', '/token', $options);
+    }
+
+    public function setBearerToken(string $bearerToken): self
+    {
+        $this->bearerToken = $bearerToken;
+
+        return $this;
+    }
+
+    public function shootExhaustWithTorpedoes(int $exhaustPort, int $qtyTorpedoes): ResponseInterface
+    {
+        $options = [
+            'headers' => [
+                'Authorization' => 'Bearer ' . $this->bearerToken,
+                'Content-Type'  => 'application/json',
+                'X-Torpedoes'   => $qtyTorpedoes,
+            ],
+        ];
+
+        return $this->guzzleClient->request('DELETE', '/reactor/exhaust/' . $exhaustPort, $options);
     }
 }
