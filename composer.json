@@ -10,15 +10,24 @@
         }
     ],
     "require": {
-        "guzzlehttp/guzzle": "^6.3"
+        "ext-json": "*"
+        ,"guzzlehttp/guzzle": "^6.3"
     },
     "require-dev": {
-        "phpunit/phpunit": "^8.1"
+        "phpunit/phpunit": "^9.3.0"
         ,"roave/security-advisories": "dev-master"
     },
     "autoload": {
         "psr-4": {
             "Alister\\Bud\\": "src/"
+        },
+        "exclude-from-classmap": [
+            "tests/"
+        ]
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Tests\\": "tests/"
         },
         "exclude-from-classmap": [
             "tests/"

@@ -1,7 +1,10 @@
 <?php
+
 declare(strict_types=1);
 
 namespace Alister\Bud;
+
+use RuntimeException;
 
 class BinaryToGalacticBasic implements Translatable
 {
@@ -13,7 +16,7 @@ class BinaryToGalacticBasic implements Translatable
         foreach ($characters as $character) {
             $lengthOfValidBinaryLetter = strspn($character, '01');
             if ($lengthOfValidBinaryLetter !== 8) {
-                throw new \RuntimeException("binary message contains non-binary-ascii, {$character}");
+                throw new RuntimeException("binary message contains non-binary-ascii, {$character}");
             }
 
             $string .= chr(intval($character, 2));

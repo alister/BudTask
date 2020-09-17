@@ -5,6 +5,7 @@ namespace Alister\Bud;
 
 use GuzzleHttp\ClientInterface;
 use Psr\Http\Message\ResponseInterface;
+use RuntimeException;
 
 class DeathStarApiClient
 {
@@ -25,12 +26,12 @@ class DeathStarApiClient
 
     public function getBaseOptions(array $options): array
     {
-        $cerificateHandling = [
+        $certificateHandling = [
             'cert' => ['/path/server.pem', 'password'],
             'verify' => true,
         ];
 
-        return array_merge($cerificateHandling, $options);
+        return array_merge($certificateHandling, $options);
     }
 
     /**
@@ -93,7 +94,7 @@ class DeathStarApiClient
         $rawBinary = \GuzzleHttp\json_decode(''. $response->getBody(), true);
 
         if ($this->translator === null) {
-            throw new \RuntimeException('No translator provided');
+            throw new RuntimeException('No translator provided');
         }
 
         return [

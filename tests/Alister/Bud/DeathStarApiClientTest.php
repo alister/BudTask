@@ -1,6 +1,8 @@
 <?php
 
-namespace Tests;
+declare(strict_types=1);
+
+namespace Tests\Alister\Bud;
 
 use Alister\Bud\DeathStarApiClient;
 use GuzzleHttp\Client;
@@ -14,13 +16,13 @@ use Psr\Http\Message\MessageInterface;
 
 class DeathStarApiClientTest extends TestCase
 {
-    const CLIENT_ID = 'R2D2';
-    const CLIENT_SECRET = 'Alderaan';
-    const EXPECTED_API_URI_TOKEN = 'https://death.star.api/token';
+    public const CLIENT_ID = 'R2D2';
+    public const CLIENT_SECRET = 'Alderaan';
+    public const EXPECTED_API_URI_TOKEN = 'https://death.star.api/token';
 
     private $container = [];
 
-    public function testGetTokenSuccessfullyMocked()
+    public function testGetTokenSuccessfullyMocked(): void
     {
         // randomise what we expect to get back to assure ourselves it's being passed back exactly.
         $randomisedAccessToken = base64_encode(random_bytes(16));
@@ -55,7 +57,7 @@ class DeathStarApiClientTest extends TestCase
         $this->assertHeaderSame($request, 'Authorization', ['Basic UjJEMjpBbGRlcmFhbg==']);
     }
 
-    public function testShootExhaustpost()
+    public function testShootExhaustpost(): void
     {
         $randomisedBearerToken = base64_encode(random_bytes(16));
 
@@ -81,7 +83,7 @@ class DeathStarApiClientTest extends TestCase
         $this->assertSame(200, $response->getStatusCode());
     }
 
-    public function testGetPrisonerLocation()
+    public function testGetPrisonerLocation(): void
     {
         $randomisedBearerToken = base64_encode(random_bytes(16));
         $mockedResponse = [
@@ -132,7 +134,7 @@ class DeathStarApiClientTest extends TestCase
         $this->assertSame($message->getHeader($headerName), $expectedContent);
     }
 
-    private function assertRequestHasCertificate(Request $request)
+    private function assertRequestHasCertificate(Request $request): void
     {
         // @todo assure ourselves that the certificate is being sent as required
     }

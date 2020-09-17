@@ -1,4 +1,5 @@
-<?php
+<?php /** @noinspection PhpUnhandledExceptionInspection */
+
 declare(strict_types=1);
 
 namespace Tests\Alister\Bud;
@@ -16,7 +17,7 @@ class FindLeiaTest extends TestCase
 {
     private $container = [];
 
-    public function testGetPrincessLocation()
+    public function testGetPrincessLocation(): void
     {
         $randomisedBearerToken = base64_encode(random_bytes(16));
         $mockedResponse = [
